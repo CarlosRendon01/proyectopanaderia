@@ -17,6 +17,47 @@ class ProductoController extends Controller
         return view('productos.index', compact('productos'));
     }
 
+    public function showChargeForm()
+    {
+        $productos = Producto::paginate(6);
+        return view('productos.cargar', compact('productos'));
+    }
+
+    public function charge(Request $request)
+    {
+        $cantidades = $request->input('cantidades', []);
+    DB::beginTransaction();
+    try {
+        foreach ($cantidades as $productoId => $cantidad) {
+            if ($cantidad <= 0) continue; // Ignorar valores no positivos
+
+            $producto = Producto::with('materias')->findOrFail($productoId); // Asegurar que el producto existe y cargar sus materias primas
+            
+            // Revisar si hay suficientes materias primas para la cantidad del producto a cargar
+            foreach ($producto->materias as $materia) {
+                $cantidadNecesaria = $materia->pivot->cantidad * $cantidad;
+                if ($materia->cantidad < $cantidadNecesaria) {
+                    throw new \Exception("No hay suficiente {$materia->nombre} para cargar {$cantidad} unidades de {$producto->nombre}");
+                }
+            }
+
+            // Reducir las materias primas necesarias
+            foreach ($producto->materias as $materia) {
+                $cantidadNecesaria = $materia->pivot->cantidad * $cantidad;
+                $materia->decrement('cantidad', $cantidadNecesaria);
+            }
+
+            // Aumentar el stock del producto
+            $producto->increment('cantidad', $cantidad);
+        }
+        DB::commit();
+        return redirect()->route('productos.index')->with('success', 'Cantidades de productos actualizadas correctamente.');
+    } catch (\Exception $e) {
+        DB::rollback();
+        return back()->withErrors(['error' => $e->getMessage()])->withInput();
+    }
+    }
+
     public function create()
     {
         $materiasPrimas = Materia::all();

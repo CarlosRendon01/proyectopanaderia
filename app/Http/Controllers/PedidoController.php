@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Puntoventa;
+use App\Models\Pedido;
 use Illuminate\Http\Request;
 
-class PuntoventaController extends Controller
+class PedidoController extends Controller
 {
     public function index()
     {
-        $puntoventas = Puntoventa::paginate(10);
-        return view('puntoventas.index', compact('puntoventas'));
+        $pedidos = Pedido::paginate(10);
+        return view('pedidos.index', compact('pedidos'));
     }
 
     public function create()
     {
-        return view('puntoventas.crear');
+        return view('pedidos.crear');
     }
 
     public function store(Request $request)

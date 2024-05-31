@@ -16,6 +16,29 @@ class MateriaController extends Controller
         return view('materias.index', compact('materias'));
     }
 
+    public function showChargeForm()
+    {
+        $materias = Materia::paginate(10);
+        return view('materias.cargar', compact('materias'));
+    }
+
+    public function charge(Request $request)
+    {
+        $cantidades = $request->input('cantidades', []);
+        DB::beginTransaction();
+        try {
+            foreach ($cantidades as $materiaId => $cantidad) {
+                $materia = Materia::findOrFail($materiaId);
+                $materia->increment('cantidad', $cantidad);
+            }
+        DB::commit();
+        return redirect()->route('materias.index')->with('success', 'Cantidades actualizadas correctamente.');
+        }catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Error al actualizar las cantidades: ' . $e->getMessage()])->withInput();
+        }
+    }
+
     // Mostrar el formulario para crear una nueva materia
     public function create()
     {

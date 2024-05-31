@@ -496,6 +496,9 @@
                                 <i class="fas fa-plus"></i> Nuevo ingrediente
                             </a>
                             @endcan
+                            <a class="btn btn-warning" href="{{ route('materias.showChargeForm') }}">
+                                <i class="fas fa-plus"></i> Cargar Materias
+                            </a>
                         </div>
 
                         <table class="table table-striped mt-2" id="miTabla2">

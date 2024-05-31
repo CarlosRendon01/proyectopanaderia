@@ -91,8 +91,13 @@ body {
     </div>
     @endif
 
-    <div class="d-flex justify-content-end mb-4">
-        <a href="{{ route('productos.create') }}" class="btn btn-success">Crear Producto</a>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a class="btn btn-warning" href="{{ route('productos.create') }}">
+            <i class="fas fa-plus"></i> Crear Producto
+        </a>
+        <a class="btn btn-warning" href="{{ route('productos.showChargeForm') }}">
+            <i class="fas fa-plus"></i> Cargar Producto
+        </a>
     </div>
 
     <div class="row justify-content-center">
