@@ -700,7 +700,6 @@ body {
                                                 <tr>
                                                     <th>Producto</th>
                                                     <th>Cantidad</th>
-                                                    <th>Cantidad</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="detalleVentaBody">
