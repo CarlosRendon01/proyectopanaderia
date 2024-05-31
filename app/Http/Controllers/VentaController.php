@@ -105,11 +105,7 @@ class VentaController extends Controller
         // return response()->json(['message' => 'Error al registrar la venta', 'error' => $e->getMessage()], 500);
     }
 }
-
     
-
-
-
     public function show(Venta $venta)
     {
         return view('ventas.show', compact('venta'));
@@ -124,11 +120,44 @@ class VentaController extends Controller
     {
         $request->validate([
             'descripcion' => 'required|string|max:255',
-            'total' => 'required|numeric',
+            'productos' => 'required|array',
+            'productos.*.cantidad' => 'required|integer|min:1'
         ]);
-
-        $venta->update($request->all());
-        return redirect()->route('ventas.index')->with('success', 'Venta actualizada exitosamente.');
+    
+        DB::beginTransaction();
+        try {
+            $total = 0;
+    
+            // Recorrer cada producto enviado desde el formulario
+            foreach ($request->productos as $id => $details) {
+                $producto = Producto::findOrFail($id);
+                $cantidadOriginal = $venta->productos()->find($id)->pivot->cantidad;
+                $nuevaCantidad = $details['cantidad'];
+                $diferenciaCantidad = $nuevaCantidad - $cantidadOriginal;
+    
+                // Actualizar el pivot con la nueva cantidad
+                $venta->productos()->updateExistingPivot($id, ['cantidad' => $nuevaCantidad]);
+                
+                // Recalcular el total
+                $total += $producto->precio * $nuevaCantidad;
+    
+                // Actualizar la cantidad de stock del producto
+                $producto->cantidad -= $diferenciaCantidad;
+                $producto->save();
+            }
+    
+            // Actualizar la venta con el nuevo total y descripción
+            $venta->update([
+                'descripcion' => $request->descripcion,
+                'total' => $total
+            ]);
+    
+            DB::commit();
+            return redirect()->route('ventas.index')->with('success', 'Venta actualizada exitosamente.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 
     public function destroy(Venta $venta)

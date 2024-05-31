@@ -114,11 +114,44 @@ class PedidoController extends Controller
     {
         $request->validate([
             'descripcion' => 'required|string|max:255',
-            'total' => 'required|numeric',
+            'productos' => 'required|array',
+            'productos.*.cantidad' => 'required|integer|min:1'
         ]);
-
-        $pedido->update($request->all());
-        return redirect()->route('pedidos.index')->with('success', 'Pedido actualizada exitosamente.');
+    
+        DB::beginTransaction();
+        try {
+            $total = 0;
+    
+            // Recorrer cada producto enviado desde el formulario
+            foreach ($request->productos as $id => $details) {
+                $producto = Producto::findOrFail($id);
+                $cantidadOriginal = $pedido->productos()->find($id)->pivot->cantidad;
+                $nuevaCantidad = $details['cantidad'];
+                $diferenciaCantidad = $nuevaCantidad - $cantidadOriginal;
+    
+                // Actualizar el pivot con la nueva cantidad
+                $pedido->productos()->updateExistingPivot($id, ['cantidad' => $nuevaCantidad]);
+                
+                // Recalcular el total
+                $total += $producto->precio * $nuevaCantidad;
+    
+                // Actualizar la cantidad de stock del producto
+                $producto->cantidad -= $diferenciaCantidad;
+                $producto->save();
+            }
+    
+            // Actualizar la venta con el nuevo total y descripción
+            $pedido->update([
+                'descripcion' => $request->descripcion,
+                'total' => $total
+            ]);
+    
+            DB::commit();
+            return redirect()->route('pedidos.index')->with('success', 'Pedido actualizado exitosamente.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => $e->getMessage()]);
+        }
     }
 
     public function destroy(Pedido $pedido)

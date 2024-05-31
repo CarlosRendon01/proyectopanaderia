@@ -674,6 +674,7 @@ body {
                                                         <i class="fas fa-trash-alt"></i> Eliminar
                                                     </button>
                                                 </form>
+                                                <a href="{{ route('ventas.edit', $venta->id) }}" class="btn btn-warning">Editar</a>
                                                 <a class="btn btn-info" onclick="showModal({{ $venta->id }})">Ver
                                                     Detalle</a>
                                                     <a href="{{ route('ventas.pdf', $venta->id) }}" class="btn btn-primary">Generar PDF</a>
