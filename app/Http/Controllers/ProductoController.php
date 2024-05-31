@@ -112,76 +112,63 @@ class ProductoController extends Controller
 
     public function update(Request $request, $id)
 {
+    $producto = Producto::findOrFail($id);
+
     $request->validate([
         'nombre' => 'required',
         'descripcion' => 'required',
         'precio' => 'required|numeric|between:0,9999.99',
-        'cantidad' => 'required|integer|min:1', // La cantidad debe ser al menos 1
+        'cantidad' => 'required|integer|min:1',
         'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        'materias_primas' => 'required|array',
+        'materias_primas.*' => 'exists:materias,id',
+        'cantidades' => 'required|array|size:' . count($request->materias_primas),
+        'cantidades.*' => 'numeric|min:1',
     ]);
 
-    $producto = Producto::findOrFail($id);
-    
-    // Validar si la cantidad nueva es menor que la actual
-    if ($request->cantidad < $producto->cantidad) {
-        return redirect()->back()->withErrors(['error' => 'La nueva cantidad no puede ser menor que la cantidad actual.'])->withInput();
-    }
+    DB::beginTransaction();
+    try {
+        $this->handleMateriasPrimas($request, $producto);
+        $this->handleImageUpload($request, $producto);
 
-    // Manejo de la imagen
-    $imagenUrl = $producto->imagen_url; // Mantén la imagen actual si no se sube una nueva
+        $producto->update($request->only(['nombre', 'descripcion', 'precio', 'cantidad']));
+
+        DB::commit();
+        return redirect()->route('productos.index')->with('success', 'Producto actualizado exitosamente.');
+    } catch (\Exception $e) {
+        DB::rollback();
+        Log::error('Error al actualizar el producto: ' . $e->getMessage());
+        return back()->withErrors(['error' => 'Error al actualizar el producto.'])->withInput();
+    }
+}
+
+private function handleImageUpload(Request $request, Producto $producto)
+{
     if ($request->hasFile('imagen')) {
         $imagenUrl = $request->file('imagen')->store('imagenes_productos', 'public');
+        $producto->imagen_url = $imagenUrl;
     }
-
-    // Preparar datos para actualizar
-    $datosParaActualizar = [
-        'nombre' => $request->nombre,
-        'descripcion' => $request->descripcion,
-        'precio' => $request->precio,
-        'imagen_url' => $imagenUrl,
-    ];
-
-    // Procesar cambios en la cantidad si es necesario
-    if ($request->cantidad != $producto->cantidad) {
-        $diferenciaCantidad = $request->cantidad - $producto->cantidad;
-
-        // Si la cantidad aumenta, verificar stock de materias primas
-        if ($diferenciaCantidad > 0) {
-            DB::beginTransaction();
-            try {
-                foreach ($producto->materias as $materiaPrima) {
-                    $cantidadNecesaria = $materiaPrima->pivot->cantidad * $diferenciaCantidad;
-                    if ($materiaPrima->cantidad < $cantidadNecesaria) {
-                        DB::rollback();
-                        return redirect()->back()->withErrors([
-                            'cantidad' => 'No hay suficiente materia prima "' . $materiaPrima->nombre . '" disponible.'
-                        ])->withInput();
-                    }
-                }
-
-                // Descontar la materia prima si hay suficiente stock
-                foreach ($producto->materias as $materiaPrima) {
-                    $cantidadNecesaria = $materiaPrima->pivot->cantidad * $diferenciaCantidad;
-                    $materiaPrima->cantidad -= $cantidadNecesaria;
-                    $materiaPrima->save();
-                }
-
-                // Añadir cantidad al array de actualización
-                $datosParaActualizar['cantidad'] = $request->cantidad;
-
-                DB::commit();
-            } catch (\Exception $e) {
-                DB::rollback();
-                return back()->withErrors(['error' => 'Ocurrió un error al actualizar el producto.'])->withInput();
-            }
-        }
-    }
-
-    // Actualizar el producto con los datos preparados
-    $producto->update($datosParaActualizar);
-
-    return redirect()->route('productos.index')->with('success', 'Producto actualizado exitosamente.');
 }
+
+private function handleMateriasPrimas(Request $request, Producto $producto)
+{
+    $materiasPrimas = $request->input('materias_primas');
+    $cantidades = $request->input('cantidades');
+
+    $producto->materias()->detach();
+    foreach ($materiasPrimas as $index => $materiaPrimaId) {
+        $materiaPrima = Materia::findOrFail($materiaPrimaId);
+        $cantidadNecesaria = $cantidades[$index];
+
+        if ($materiaPrima->cantidad < $cantidadNecesaria) {
+            throw new \Exception("Insufficient quantity for " . $materiaPrima->nombre);
+        }
+
+        $producto->materias()->attach($materiaPrimaId, ['cantidad' => $cantidadNecesaria]);
+        $materiaPrima->decrement('cantidad', $cantidadNecesaria);
+    }
+}
+
 
 
 
