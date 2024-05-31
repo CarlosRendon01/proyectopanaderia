@@ -82,51 +82,57 @@ class MateriaController extends Controller
     }
 
     // Actualizar una materia existente en la base de datos
-    public function update(Request $request, Materia $materia)
-    {
-        // Validación (similar al store, pero sin 'required' en imagen)
-        $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'required|string',
-            'proveedor' => 'required|string|max:255',
-            'cantidad' => 'required|numeric|min:0',
-            'precio' => 'required|numeric|min:0',
-            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ], [
-            'imagen.image' => 'El archivo debe ser una imagen válida.',
-            'imagen.mimes' => 'El archivo debe ser de tipo: jpeg, png, jpg, gif o svg.',
-            'imagen.max' => 'El tamaño máximo del archivo es de 2 MB.',
-        ]);
-    
-        // Manejo de la imagen (similar al store, pero con eliminación de la imagen anterior si existe)
-        $imagenUrl = $materia->imagen_url; // Mantener la imagen actual por defecto
-        if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
-            if ($materia->imagen_url) {
-                Storage::disk('public')->delete($materia->imagen_url); // Eliminar la imagen anterior
-            }
-            $imagen = $request->file('imagen');
-            $imagenUrl = $imagen->store('imagenes_materias', 'public');
-        }
-    
-        DB::beginTransaction();
-        try {
-            // Actualizar la materia
-            $materia->update([
-                'nombre' => $request->nombre,
-                'descripcion' => $request->descripcion,
-                'proveedor' => $request->proveedor,
-                'cantidad' => $request->cantidad,
-                'precio' => $request->precio,
-                'imagen_url' => $imagenUrl, // Actualizar la URL de la imagen (si se cambió)
-            ]);
-    
-            DB::commit();
-            return redirect()->route('materias.index')->with('success', 'Materia actualizada exitosamente.');
-        } catch (\Exception $e) {
-            DB::rollback();
-            return back()->withErrors(['error' => 'Ocurrió un error al actualizar la materia: ' . $e->getMessage()])->withInput();
-        }
+public function update(Request $request, Materia $materia)
+{
+    // Validación (similar al store, pero sin 'required' en imagen)
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'descripcion' => 'required|string',
+        'proveedor' => 'required|string|max:255',
+        'cantidad' => 'required|numeric|min:1',
+        'precio' => 'required|numeric|min:0',
+        'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+    ], [
+        'imagen.image' => 'El archivo debe ser una imagen válida.',
+        'imagen.mimes' => 'El archivo debe ser de tipo: jpeg, png, jpg, gif o svg.',
+        'imagen.max' => 'El tamaño máximo del archivo es de 2 MB.',
+    ]);
+
+    // Verificar que la cantidad ingresada sea mayor que la cantidad actual
+    if ($request->cantidad <= $materia->cantidad) {
+        return back()->withErrors(['cantidad' => 'La cantidad ingresada debe ser mayor que la cantidad actual.'])->withInput();
     }
+
+    // Manejo de la imagen (similar al store, pero con eliminación de la imagen anterior si existe)
+    $imagenUrl = $materia->imagen_url; // Mantener la imagen actual por defecto
+    if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+        if ($materia->imagen_url) {
+            Storage::disk('public')->delete($materia->imagen_url); // Eliminar la imagen anterior
+        }
+        $imagen = $request->file('imagen');
+        $imagenUrl = $imagen->store('imagenes_materias', 'public');
+    }
+
+    DB::beginTransaction();
+    try {
+        // Actualizar la materia
+        $materia->update([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion,
+            'proveedor' => $request->proveedor,
+            'cantidad' => $request->cantidad,
+            'precio' => $request->precio,
+            'imagen_url' => $imagenUrl, // Actualizar la URL de la imagen (si se cambió)
+        ]);
+
+        DB::commit();
+        return redirect()->route('materias.index')->with('success', 'Materia actualizada exitosamente.');
+    } catch (\Exception $e) {
+        DB::rollback();
+        return back()->withErrors(['error' => 'Ocurrió un error al actualizar la materia: ' . $e->getMessage()])->withInput();
+    }
+}
+
     
 
     // Eliminar una materia de la base de datos
