@@ -14,20 +14,21 @@ class PedidosTableSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('pedidos')->insert([
+        $pedidos = [
             [
-                'total' => 200,
-                'descripcion' => 'Descripción del pedido 1',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
+                'descripcion' => 'Pedido 1',
                 'total' => 300,
-                'descripcion' => 'Descripción del pedido 2',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
-            // Agrega más pedidos según sea necesario
-        ]);
+            [
+                'descripcion' => 'Pedido 2',
+                'total' => 300,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ];
+
+        DB::table('pedidos')->insert($pedidos);
     }
 }

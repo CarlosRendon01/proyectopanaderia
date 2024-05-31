@@ -617,7 +617,7 @@ body {
 @section('content')
 <section class="section">
     <div class="section-header">
-        <h3 class="page__heading">Ventas</h3> <!-- Título de la página actualizado -->
+        <h3 class="page__heading">Pedidos</h3> <!-- Título de la página actualizado -->
     </div>
     @if(session('success'))
     <div class="alert alert-success text-center">
@@ -637,7 +637,7 @@ body {
                             </div>
                             <!-- Botón para añadir nueva venta -->
                             @can('crear-ventas')
-                            <a class="btn btn-success" href="{{ route('ventas.create') }}">
+                            <a class="btn btn-success" href="{{ route('pedidos.create') }}">
                                 <i class="fas fa-plus"></i> Nuevo
                             </a>
                             @endcan
@@ -658,25 +658,25 @@ body {
                                 </thead>
                                 <tbody id="tableBody">
 
-                                    @foreach ($ventas as $venta)
+                                    @foreach ($pedidos as $pedido)
                                     <tr>
-                                        <td class="text-center">{{ $venta->id }}</td>
-                                        <td class="text-center">{{ $venta->descripcion }}</td>
-                                        <td class="text-center">{{ $venta->total }}</td>
+                                        <td class="text-center">{{ $pedido->id }}</td>
+                                        <td class="text-center">{{ $pedido->descripcion }}</td>
+                                        <td class="text-center">{{ $pedido->total }}</td>
                                         <td class="text-center">
                                             <div>
-                                                <form action="{{ route('ventas.destroy', $venta->id) }}" method="POST"
+                                                <form action="{{ route('pedidos.destroy', $pedido->id) }}" method="POST"
                                                     class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-danger"
-                                                        onclick="return confirm('¿Estás seguro de eliminar esta venta?')">
+                                                        onclick="return confirm('¿Estás seguro de eliminar esta pedido?')">
                                                         <i class="fas fa-trash-alt"></i> Eliminar
                                                     </button>
                                                 </form>
-                                                <a class="btn btn-info" onclick="showModal({{ $venta->id }})">Ver
+                                                <a class="btn btn-info" onclick="showModal({{ $pedido->id }})">Ver
                                                     Detalle</a>
-                                                    <a href="{{ route('ventas.pdf', $venta->id) }}" class="btn btn-primary">Generar PDF</a>
+                                                    <a href="{{ route('pedidos.pdf', $pedido->id) }}" class="btn btn-primary">Generar PDF</a>
 
                                             </div>
                                         </td>
@@ -690,7 +690,7 @@ body {
                             <div class="custom-modal-dialog">
                                 <div class="custom-modal-content">
                                     <div class="custom-modal-header">
-                                        <h5 class="custom-modal-title">Detalle de la Venta</h5>
+                                        <h5 class="custom-modal-title">Detalle del Pedido</h5>
                                         <button type="button" class="custom-modal-close"
                                             onclick="closeModal()">&times;</button>
                                     </div>
@@ -766,14 +766,14 @@ body {
                         </style>
 
                         <script>
-                        function showModal(ventaId) {
+                        function showModal(pedidoId) {
                             var modal = document.getElementById('detalleVentaModal');
                             modal.style.display = "block";
 
                             // Aquí puedes hacer la solicitud AJAX para obtener los detalles de la venta
                             // y llenar el contenido del modal.
                             $.ajax({
-                                url: '/ventas/' + ventaId + '/detalles',
+                                url: '/pedidos/' + pedidoId + '/detalles',
                                 method: 'GET',
                                 success: function(data) {
                                     var detalleVentaBody = document.getElementById('detalleVentaBody');
@@ -803,7 +803,7 @@ body {
 
                         <!-- Paginación -->
                         <div class="pagination justify-content-end">
-                            {!! $ventas->appends(request()->query())->links() !!}
+                            {!! $pedidos->appends(request()->query())->links() !!}
                         </div>
                     </div>
                 </div>
@@ -812,14 +812,14 @@ body {
     </div>
 </section>
 <script>
-function showModal(ventaId) {
+function showModal(pedidoId) {
     var modal = document.getElementById('detalleVentaModal');
     modal.style.display = "flex";
 
     // Aquí puedes hacer la solicitud AJAX para obtener los detalles de la venta
     // y llenar el contenido del modal.
     $.ajax({
-        url: '/ventas/' + ventaId + '/detalles',
+        url: '/pedidos/' + pedidoId + '/detalles',
         method: 'GET',
         success: function (data) {
             var detalleVentaBody = document.getElementById('detalleVentaBody');
@@ -853,7 +853,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var modal = $(this);
 
         $.ajax({
-            url: '/ventas/' + ventaId + '/detalles',
+            url: '/pedidos/' + pedidoId + '/detalles',
             method: 'GET',
             success: function(data) {
                 var detalleVentaBody = $('#detalleVentaBody');

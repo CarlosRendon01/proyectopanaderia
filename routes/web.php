@@ -40,7 +40,10 @@ Route::group(['middleware' => ['auth']], function() {
     Route::get('/ventas/{id}/detalles', [VentaController::class, 'detalles']);
     Route::get('/ventas/{id}/pdf', [VentaController::class, 'generarPDF'])->name('ventas.pdf');
     
-    
+    Route::get('/pedidos/crear', [PedidoController::class, 'create']);
+    Route::post('/pedidos', [PedidoController::class, 'store'])->name('pedidos.store');
+    Route::get('/pedidos/{id}/detalles', [PedidoController::class, 'detalles']);
+    Route::get('/pedidos/{id}/pdf', [PedidoController::class, 'generarPDF'])->name('pedidos.pdf');
     //Route::get('/grupos/{clave}/generarPDF', [GrupoController::class, 'generarPDF'])->name('grupos.generarPDF');
 }
 

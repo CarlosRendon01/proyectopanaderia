@@ -1,74 +1,76 @@
 @extends('layouts.app')
-{{
+
 @section('content')
-<section class="section" style="background-color: #e0e0eb; min-height: 100vh; display: flex; align-items: center;">
-    <div class="container custom-container">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card shadow-lg border-0 rounded-lg">
-                    <div class="card-header d-flex align-items-center justify-content-between bg-primary text-white">
-                        <a href="{{ url()->previous() }}" class="btn btn-back text-white">
-                            <i class="fas fa-arrow-left mr-2"></i> Regresar
-                        </a>
-                        <h3 class="page__heading text-center flex-grow-1 m-0">
-                            <i class="fas fa-book mr-2"></i> Crear Inscripción
-                        </h3>
+<section class="section">
+    <div class="section-header">
+        <h3 class="page__heading">Nuevo Pedido</h3>
+    </div>
+    <div class="section-body">
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        Detalles del Pedido
                     </div>
-                    <div class="card-body p-4 bg-white">
-                        @if ($errors->any())
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <strong>¡Revise los campos!</strong>
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        @endif
-
-                        <form action="{{ route('inscripciones.store') }}" method="POST" class="my-4">
+                    @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <ul>
+                            @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                    @endif
+                    <div class="card-body">
+                        <form id="ventaForm" action="{{ route('pedidos.store') }}" method="POST">
                             @csrf
-                            <div class="form-group floating-label">
-                                <label for="estudiante_id">Estudiante:</label>
-                                <select class="form-control select2 @error('estudiante_id') is-invalid @enderror" name="estudiante_id" id="estudiante_id" required>
-                                    <option value="">Seleccione un estudiante</option>
-                                    @foreach ($estudiantes as $estudiante)
-                                    <option value="{{ $estudiante->id }}" {{ old('estudiante_id') == $estudiante->id ? 'selected' : '' }}>
-                                        {{ $estudiante->numeroDeControl }} - {{ $estudiante->nombre }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                                @error('estudiante_id')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                                @enderror
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="descripcion">Descripción</label>
+                                    <input type="text" class="form-control" id="descripcion" name="descripcion"
+                                        placeholder="Descripción breve del pedido" required>
+                                </div>
                             </div>
-
-                            <div class="form-group floating-label">
-                                <label for="grupo_id">Grupo:</label>
-                                <select class="form-control select2 @error('grupo_id') is-invalid @enderror" name="grupo_id" id="grupo_id" required>
-                                    <option value="">Seleccione un grupo</option>
-                                    @foreach ($grupos as $grupo)
-                                    <option value="{{ $grupo->id }}" {{ old('grupo_id') == $grupo->id ? 'selected' : '' }}>
-                                        {{ $grupo->clave }} - {{ optional($grupo->materia)->nombre }} - {{ optional($grupo->horario)->hora_in }} a {{ optional($grupo->horario)->hora_fn }}
-                                    </option>
-                                    @endforeach
-                                </select>
-                                @error('grupo_id')
-                                <span class="invalid-feedback" role="alert">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                                @enderror
+                            <div class="form-row">
+                                <div class="form-group col-md-6">
+                                    <label for="producto">Producto</label>
+                                    <select id="producto" class="form-control">
+                                        @foreach ($productos as $producto)
+                                        <option value="{{ $producto->id }}" data-precio="{{ $producto->precio }}" data-cantidad="{{ $producto->cantidad }}">
+                                            {{ $producto->nombre }} - ${{ number_format($producto->precio, 2) }} - <span class="cantidad-disponible">{{ $producto->cantidad }}</span>
+                                        </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="cantidad">Cantidad</label>
+                                    <input type="number" class="form-control" id="cantidad">
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label>&nbsp;</label>
+                                    <button type="button" class="btn btn-success btn-block"
+                                        id="addProductButton">Agregar</button>
+                                </div>
                             </div>
-
-                            <div class="text-center">
-                                <button type="submit" class="btn btn-primary btn-block btn-submit">Crear Inscripción</button>
-                            </div>
+                            <div id="productosContainer"></div>
+                            <input type="hidden" name="total" id="total">
                         </form>
+                        <table class="table table-striped mt-2" id="productosTable">
+                            <thead>
+                                <tr>
+                                    <th>Opciones</th>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio Unitario</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                        <h4>Total: $<span id="totalDisplay">0.00</span></h4>
+                        <button type="submit" form="ventaForm" class="btn btn-primary">Guardar Pedido</button>
+                        <a href="{{ route('pedidos.index') }}" class="btn btn-danger">Cancelar</a>
                     </div>
                 </div>
             </div>
@@ -77,198 +79,177 @@
 </section>
 @endsection
 
-@section('scripts')
 <script>
-    // Agrega la clase 'active' cuando un campo de selección está enfocado
-    $('select').focus(function() {
-        $(this).parent().addClass('active');
-    }).blur(function() {
-        if ($(this).val() === '') {
-            $(this).parent().removeClass('active');
-        }
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('addProductButton').addEventListener('click', agregarProducto);
+    cargarProductosDeLocalStorage();
+    actualizarCantidadesDisponibles();
+
+    document.getElementById('ventaForm').addEventListener('submit', function(event) {
+        actualizarFormulario();
     });
 
-    $(document).ready(function() {
-        $('.select2').select2();
+    function agregarProducto() {
+        const productoSelect = document.getElementById('producto');
+        const selectedOption = productoSelect.options[productoSelect.selectedIndex];
+        const productoId = selectedOption.value;
+        const productoNombre = selectedOption.text.split(' - $')[0];
+        const precio = parseFloat(selectedOption.getAttribute('data-precio'));
+        const cantidadDisponible = parseInt(selectedOption.getAttribute('data-cantidad'));
+        const cantidadInput = document.getElementById('cantidad');
+        const cantidad = parseInt(cantidadInput.value);
+        const subtotal = precio * cantidad;
 
-        $('select').focus(function() {
-            $(this).parent().addClass('active');
-        }).blur(function() {
-            if ($(this).val() === '') {
-                $(this).parent().removeClass('active');
+        if (cantidad <= 0 || isNaN(cantidad)) {
+            alert('Ingrese una cantidad válida.');
+            return;
+        }
+
+        if (cantidad > cantidadDisponible) {
+            alert('La cantidad ingresada excede la cantidad disponible del producto.');
+            return;
+        }
+
+        const producto = {
+            id: productoId,
+            nombre: productoNombre,
+            cantidad: cantidad,
+            precio: precio,
+            subtotal: subtotal.toFixed(2)
+        };
+
+        // Descontar la cantidad agregada del producto en la vista y en el localStorage
+        selectedOption.setAttribute('data-cantidad', cantidadDisponible - cantidad);
+        const cantidadDisponibleSpan = selectedOption.querySelector('.cantidad-disponible');
+        if (cantidadDisponibleSpan) {
+            cantidadDisponibleSpan.textContent = cantidadDisponible - cantidad;
+        }
+
+        guardarEnLocalStorage(producto);
+        actualizarCantidadesEnLocalStorage(productoId, cantidadDisponible - cantidad);
+        cantidadInput.value = '';
+    }
+
+    function guardarEnLocalStorage(producto) {
+        let productos = JSON.parse(localStorage.getItem('productosVenta')) || [];
+        let productoExistente = productos.find(p => p.id === producto.id);
+
+        if (productoExistente) {
+            productoExistente.cantidad += producto.cantidad;
+            productoExistente.subtotal = (productoExistente.cantidad * productoExistente.precio).toFixed(2);
+        } else {
+            productos.push(producto);
+        }
+
+        localStorage.setItem('productosVenta', JSON.stringify(productos));
+        actualizarTabla();
+        actualizarTotal();
+        actualizarFormulario();
+    }
+
+    function actualizarCantidadesEnLocalStorage(productoId, nuevaCantidad) {
+        let cantidades = JSON.parse(localStorage.getItem('cantidadesDisponibles')) || {};
+        cantidades[productoId] = nuevaCantidad;
+        localStorage.setItem('cantidadesDisponibles', JSON.stringify(cantidades));
+    }
+
+    function cargarProductosDeLocalStorage() {
+        const productos = JSON.parse(localStorage.getItem('productosVenta')) || [];
+        productos.forEach(agregarFilaATabla);
+        actualizarTotal();
+    }
+
+    function actualizarCantidadesDisponibles() {
+        const cantidades = JSON.parse(localStorage.getItem('cantidadesDisponibles')) || {};
+        const productoSelect = document.getElementById('producto').options;
+
+        for (let i = 0; i < productoSelect.length; i++) {
+            const option = productoSelect[i];
+            const productoId = option.value;
+            if (cantidades[productoId] !== undefined) {
+                const cantidadDisponible = cantidades[productoId];
+                option.setAttribute('data-cantidad', cantidadDisponible);
+                const cantidadDisponibleSpan = option.querySelector('.cantidad-disponible');
+                if (cantidadDisponibleSpan) {
+                    cantidadDisponibleSpan.textContent = cantidadDisponible;
+                }
             }
-        });
-    });
-</script>
-@endsection
-
-@section('styles')
-<style>
-    .bg-primary {
-        background-color: #4b479c;
-    }
-
-    .form-label {
-        font-weight: bold;
-        color: #4b479c;
-        margin-bottom: 5px;
-        font-size: 16px;
-    }
-
-    .form-control {
-        padding: 12px 15px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        width: 100%;
-        box-sizing: border-box;
-        transition: all 0.2s ease;
-        font-size: 16px;
-        background-color: #f9f9f9;
-    }
-
-    .form-control:focus {
-        border-color: #4b479c;
-        box-shadow: 0 0 8px rgba(75, 71, 156, 0.3);
-        background-color: #fff;
-    }
-
-    .input-group-text {
-        cursor: pointer;
-    }
-
-    .card {
-        border: none;
-        border-radius: 15px;
-        overflow: hidden;
-    }
-
-    .card-header {
-        padding: 20px;
-        background-color: #4b479c;
-        border-bottom: none;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .card-header .btn-back {
-        display: flex;
-        align-items: center;
-        font-size: 14px;
-        padding: 8px 12px;
-        border-radius: 8px;
-        background-color: rgba(255, 255, 255, 0.1);
-        transition: background-color 0.2s ease, color 0.2s ease;
-    }
-
-    .card-header .btn-back:hover {
-        background-color: #fff;
-        color: #4b479c;
-    }
-
-    .card-header .btn-back:hover .fa-arrow-left {
-        color: #4b479c;
-    }
-
-    .card-header .page__heading {
-        color: #ffffff;
-    }
-
-    .card-body {
-        padding: 30px;
-        background-color: #ffffff;
-        border-radius: 15px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    .alert {
-        margin-bottom: 20px;
-    }
-
-    .btn-submit {
-        transition: all 0.3s ease;
-        background-color: #4b479c;
-        color: #fff;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 8px;
-        font-size: 18px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-submit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
-        background-color: #3a2c70;
-    }
-
-    .btn-submit:focus {
-        outline: none;
-        box-shadow: 0 0 10px rgba(75, 71, 156, 0.3);
-    }
-
-    .section {
-        padding: 60px 0;
-        background-color: #e0e0eb;
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-    }
-
-    .custom-container {
-        max-width: 800px;
-        margin: auto;
-        border: 3px solid #4b479c;
-        border-radius: 15px;
-        padding: 20px;
-        background-color: #ffffff;
-        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-    }
-
-    .custom-container:hover {
-        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-        transform: translateY(-2px);
-    }
-
-    @media (max-width: 768px) {
-        .custom-container {
-            padding: 0 20px;
         }
     }
 
-    .select2-container .select2-selection--single {
-        height: 45px;
-        border-radius: 8px;
-        padding: 8px;
-        font-size: 16px;
-        border: 1px solid #ccc;
+    window.removeProduct = function(element, id) {
+        var row = element.closest('tr');
+        if (!row) {
+            console.error("No se encontró la fila.");
+            return;
+        }
+
+        row.remove();
+
+        let productos = JSON.parse(localStorage.getItem('productosVenta')) || [];
+        productos = productos.filter(producto => producto.id.toString() !== id.toString());
+        localStorage.setItem('productosVenta', JSON.stringify(productos));
+
+        actualizarTabla();
+        actualizarTotal();
+        actualizarFormulario();
+        actualizarCantidadesDisponibles();
     }
 
-    .select2-container--default .select2-selection--single .select2-selection__rendered {
-        line-height: 45px;
-        padding-left: 10px;
-        color: #333;
+    function actualizarTabla() {
+        const tbody = document.getElementById('productosTable').querySelector('tbody');
+        tbody.innerHTML = '';
+
+        let productos = JSON.parse(localStorage.getItem('productosVenta')) || [];
+        productos.forEach(producto => agregarFilaATabla(producto));
     }
 
-    .select2-container--default .select2-selection--single .select2-selection__arrow {
-        height: 45px;
+    function agregarFilaATabla(producto) {
+        const tbody = document.getElementById('productosTable').querySelector('tbody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
+        <td><button type="button" class="btn btn-danger btn-sm" onclick="removeProduct(this, '${producto.id}')">Eliminar</button></td>
+        <td>${producto.nombre}</td>
+        <td>${producto.cantidad}</td>
+        <td>$${producto.precio}</td>
+        <td>$${producto.subtotal}</td>
+        `;
+        tbody.appendChild(row);
     }
 
-    .select2-dropdown {
-        border-radius: 8px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        border: 1px solid #ccc;
+    function actualizarTotal() {
+        let productos = JSON.parse(localStorage.getItem('productosVenta')) || [];
+        let total = productos.reduce((sum, producto) => sum + parseFloat(producto.subtotal), 0);
+        document.getElementById('totalDisplay').textContent = total.toFixed(2);
+        document.getElementById('total').value = total.toFixed(2);
     }
 
-    .select2-results__option {
-        padding: 8px 10px;
+    function actualizarFormulario() {
+        const productosContainer = document.getElementById('productosContainer');
+        productosContainer.innerHTML = '';
+
+        let productos = JSON.parse(localStorage.getItem('productosVenta')) || [];
+        productos.forEach(producto => {
+            let inputId = document.createElement('input');
+            inputId.type = 'hidden';
+            inputId.name = 'productos[' + producto.id + '][id]';
+            inputId.value = producto.id;
+
+            let inputCantidad = document.createElement('input');
+            inputCantidad.type = 'hidden';
+            inputCantidad.name = 'productos[' + producto.id + '][cantidad]';
+            inputCantidad.value = producto.cantidad;
+
+            productosContainer.appendChild(inputId);
+            productosContainer.appendChild(inputCantidad);
+        });
     }
 
-    .select2-results__option--highlighted {
-        background-color: #4b479c;
-        color: #fff;
-    }
-</style>
-}}
-@endsection
+    // Limpiar localStorage si la venta fue exitosa
+    @if(session('venta_exitosa'))
+        localStorage.removeItem('productosVenta');
+        localStorage.removeItem('cantidadesDisponibles');
+    @endif
+});
+</script>
+    
