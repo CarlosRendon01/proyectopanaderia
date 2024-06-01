@@ -636,6 +636,53 @@ body {
                                     placeholder="Buscar por ID, Concepto o Total">
                             </div>
                             <!-- Botón para añadir nueva venta -->
+                             <!-- Botón y formulario para el corte de caja -->
+                             <a class="btn btn-success" onclick="openCorteDeCajaModal();">
+                                <i class="fas fa-cash-register"></i> Corte de Caja
+                            </a>
+
+                            <div id="corteDeCajaModal" style="display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
+                            <div style="background: white; padding: 20px; width: 300px; margin: 100px auto;">
+                                <h2>Corte de Caja</h2>
+                                <form action="{{ route('ventas.corteDeCaja') }}" method="POST">
+                                    @csrf
+                                    <label for="montoInicial">Monto Inicial del Día:</label>
+                                    <input type="number" name="montoInicial" id="montoInicial" step="0.01" required>
+                                    <button type="submit" class="btn btn-primary">Generar Corte</button>
+                                </form>
+                                <button onclick="closeCorteDeCajaModal();" style="margin-top: 10px;">Cerrar</button>
+                            </div>
+                            </div>
+
+                            <!-- Botón para el reporte del día -->
+                            <a class="btn btn-info" href="{{ route('ventas.reporteDelDia') }}">
+                                <i class="fas fa-file-pdf"></i> Reporte del Día
+                            </a>
+
+                            <button class="btn btn-info" onclick="openReportePorRangoModal();">
+    <i class="fas fa-calendar-alt"></i> Reporte por Rango
+</button>
+
+<!-- Modal para reporte por rango de fechas -->
+<div id="reportePorRangoModal" style="display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
+    <div style="background: white; padding: 20px; width: 300px; margin: 100px auto;">
+        <h2>Reporte por Rango de Fechas</h2>
+        <form action="{{ route('ventas.reportePorRango') }}" method="POST">
+            @csrf
+            <div class="form-group">
+                <label for="fecha_inicio">Fecha Inicio:</label>
+                <input type="date" name="fecha_inicio" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="fecha_fin">Fecha Fin:</label>
+                <input type="date" name="fecha_fin" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </form>
+        <button onclick="closeReportePorRangoModal();" style="margin-top: 10px;">Cerrar</button>
+    </div>
+</div>
+
                             @can('crear-ventas')
                             <a class="btn btn-success" href="{{ route('ventas.create') }}">
                                 <i class="fas fa-plus"></i> Nuevo
@@ -927,6 +974,22 @@ function confirmarEliminacion(id) {
             });
         }
     });
+}
+
+function openCorteDeCajaModal() {
+    document.getElementById('corteDeCajaModal').style.display = 'block';
+}
+
+function closeCorteDeCajaModal() {
+    document.getElementById('corteDeCajaModal').style.display = 'none';
+}
+
+function openReportePorRangoModal() {
+    document.getElementById('reportePorRangoModal').style.display = 'block';
+}
+
+function closeReportePorRangoModal() {
+    document.getElementById('reportePorRangoModal').style.display = 'none';
 }
 </script>
 @endsection

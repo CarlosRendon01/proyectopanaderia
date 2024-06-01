@@ -25,6 +25,9 @@ Route::get('/materias/cargar', [MateriaController::class, 'showChargeForm'])->na
 Route::post('/materias/cargar', [MateriaController::class, 'charge'])->name('materias.charge');
 Route::get('/productos/cargar', [ProductoController::class, 'showChargeForm'])->name('productos.showChargeForm');
 Route::post('/productos/cargar', [ProductoController::class, 'charge'])->name('productos.charge');
+Route::post('/ventas/corteDeCaja', [VentaController::class, 'corteDeCaja'])->name('ventas.corteDeCaja');
+Route::get('/ventas/reporteDelDia', [VentaController::class, 'reporteDelDia'])->name('ventas.reporteDelDia');
+Route::post('/ventas/reportePorRango', [VentaController::class, 'reportePorRango'])->name('ventas.reportePorRango');
 
 // Grupo de rutas protegidas por el middleware 'auth'
 Route::group(['middleware' => ['auth']], function() {

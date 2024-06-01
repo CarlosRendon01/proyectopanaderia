@@ -7,6 +7,7 @@ use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PDF; // Usa el alias registrado
+use Carbon\Carbon;
 
 
 class VentaController extends Controller
@@ -51,7 +52,43 @@ class VentaController extends Controller
     return response()->json($detalles);
 }
 
+public function reporteDelDia()
+{
+    $ventas = Venta::whereDate('created_at', now()->toDateString())->get();
+    $total = $ventas->sum('total');
+    $pdf = PDF::loadView('ventas.reporte', compact('ventas', 'total'));
+    return $pdf->download('reporte_del_dia.pdf');
+}
 
+public function reportePorRango(Request $request)
+{
+    $this->validate($request, [
+        'fecha_inicio' => 'required|date',
+        'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+    ]);
+
+    $ventas = Venta::whereBetween('created_at', [$request->fecha_inicio, $request->fecha_fin])->get();
+    $total = $ventas->sum('total');
+    $pdf = PDF::loadView('ventas.reporte', [
+        'ventas' => $ventas,
+        'total' => $total,
+        'fecha_inicio' => $request->fecha_inicio,
+        'fecha_fin' => $request->fecha_fin
+    ]);
+    return $pdf->download("reporte_{$request->fecha_inicio}_a_{$request->fecha_fin}.pdf");
+}
+
+public function corteDeCaja(Request $request)
+{
+    $montoInicial = $request->input('montoInicial', 0);
+    $fechaHoy = Carbon::today();
+    $ventasDelDia = Venta::with('productos')->whereDate('created_at', $fechaHoy)->get();
+    $totalVentas = $ventasDelDia->sum('total');
+    $totalConInicial = $totalVentas + $montoInicial;
+
+    $pdf = PDF::loadView('ventas.corteDeCaja', compact('ventasDelDia', 'totalConInicial', 'montoInicial'));
+    return $pdf->download('corte-de-caja-'.$fechaHoy->format('Y-m-d').'.pdf');
+}
 
     public function create()
     {
