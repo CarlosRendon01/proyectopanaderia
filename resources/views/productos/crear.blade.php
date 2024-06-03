@@ -43,7 +43,7 @@ body {
         </div>
         @endif
 
-        <form action="{{ route('productos.store') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('productos.store') }}" method="POST" enctype="multipart/form-data" onsubmit="return validateMateriasPrimas()">
             @csrf
             {{-- Campos existentes (nombre, descripcion, precio, cantidad, imagen) --}}
             <div class="form-group">
@@ -75,7 +75,7 @@ body {
                             <select name="materias_primas[]" class="form-control" required>
                                 <option value="">Seleccionar materia prima</option>
                                 @foreach ($materiasPrimas as $materiaPrima)
-                                <option value="{{ $materiaPrima->id }}">{{ $materiaPrima->nombre }}</option>
+                                <option value="{{ $materiaPrima->id }}">{{ $materiaPrima->nombre }} ({{ $materiaPrima->unidad }})</option>
                                 @endforeach
                             </select>
                         </div>
@@ -103,7 +103,7 @@ document.getElementById('add-materia-prima').addEventListener('click', () => {
     let optionsHtml = '<option value="">Seleccionar materia prima</option>';
     @foreach ($materiasPrimas as $materiaPrima)
     if (!existingSelections.includes('{{ $materiaPrima->id }}')) {
-        optionsHtml += `<option value="{{ $materiaPrima->id }}">{{ $materiaPrima->nombre }}</option>`;
+        optionsHtml += `<option value="{{ $materiaPrima->id }}">{{ $materiaPrima->nombre }} ({{ $materiaPrima->unidad_estandar }})</option>`;
     }
     @endforeach
 
@@ -128,6 +128,19 @@ document.getElementById('add-materia-prima').addEventListener('click', () => {
 document.getElementById('materias-primas-container').addEventListener('click', (e) => {
     if (e.target.classList.contains('remove-materia-prima')) {
         e.target.closest('.materia-prima-row').remove();
+    }
+});
+
+document.querySelector('form').addEventListener('submit', function(event) {
+    const materiaPrimaSelects = document.querySelectorAll('select[name="materias_primas[]"]');
+    let isValid = false;
+    materiaPrimaSelects.forEach(select => {
+        if (select.value !== '') isValid = true;
+    });
+
+    if (!isValid) {
+        event.preventDefault(); // Detener el envío del formulario
+        alert('Por favor, añade al menos una materia prima.');
     }
 });
 </script>

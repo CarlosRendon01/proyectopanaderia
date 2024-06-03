@@ -67,75 +67,59 @@ class ProductoController extends Controller
     public function store(Request $request)
     {
         // Validación
-        $request->validate([
-            'nombre' => 'required',
-            'descripcion' => 'required',
-            'precio' => 'required|numeric|between:0,9999.99',
-            'cantidad' => 'required|integer',
-            'materias_primas' => 'required|array',
-            'materias_primas.*' => 'exists:materias,id',
-            'cantidades' => 'required|array|size:' . count($request->materias_primas),
-            'cantidades.*' => 'numeric|min:1',
-            'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+    $request->validate([
+        'nombre' => 'required|string|max:255',
+        'descripcion' => 'required|string',
+        'precio' => 'required|numeric|between:0,9999.99',
+        'cantidad' => 'required|integer|min:1',
+        'materias_primas' => 'required|array|min:1',
+        'materias_primas.*' => 'exists:materias,id',
+        'cantidades' => 'required|array|size:' . count($request->input('materias_primas', [])),
+        'cantidades.*' => 'numeric|min:1',
+        'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+    ], [
+        'materias_primas.required' => 'Debe seleccionar al menos una materia prima.',
+        'materias_primas.*.exists' => 'La materia prima seleccionada no existe.',
+        'cantidades.*.min' => 'La cantidad debe ser al menos 1.',
+        'cantidades.required' => 'Debe ingresar una cantidad para cada materia prima.',
+        'cantidades.size' => 'La cantidad de elementos en cantidades debe coincidir con el número de materias primas.',
+    ]);
+
+    // Manejo de la imagen
+    $imagenUrl = null;
+    if ($request->hasFile('imagen')) {
+        $imagen = $request->file('imagen');
+        $imagenUrl = $imagen->store('imagenes_productos', 'public');
+    }
+
+    DB::beginTransaction();
+
+    try {
+        // Crear el producto
+        $producto = Producto::create([
+            'nombre' => $request->nombre,
+            'descripcion' => $request->descripcion,
+            'precio' => $request->precio,
+            'cantidad' => $request->input('cantidad'),
+            'imagen_url' => $imagenUrl,
         ]);
 
-        // Manejo de la imagen
-        $imagenUrl = null;
-        if ($request->hasFile('imagen')) {
-            $imagen = $request->file('imagen');
-            $imagenUrl = $imagen->store('imagenes_productos', 'public');
+        // Adjuntar materias primas y validar cantidades
+        foreach ($request->input('materias_primas', []) as $index => $materiaPrimaId) {
+            $cantidadNecesaria = $request->cantidades[$index];
+            $materiaPrima = Materia::findOrFail($materiaPrimaId);
+            $producto->materias()->attach($materiaPrimaId, ['cantidad' => $cantidadNecesaria]);
+
+            // Reducir el stock de la materia prima
+            $materiaPrima->decrement('cantidad', $cantidadNecesaria * $request->cantidad);
         }
 
-        // Obtener materias primas y cantidades
-        $materiasPrimas = $request->input('materias_primas', []);
-        $cantidades = $request->input('cantidades', []);
-        $cantidadProducto = $request->cantidad;
-
-        // Verificar si hay suficiente materia prima (dentro de una transacción)
-        DB::beginTransaction();
-
-        try {
-            foreach ($materiasPrimas as $index => $materiaPrimaId) {
-                $materiaPrima = Materia::find($materiaPrimaId);
-                $cantidadNecesaria = $cantidades[$index] * $cantidadProducto;
-
-                if ($materiaPrima->cantidad < $cantidadNecesaria) {
-                    DB::rollback();
-                    return redirect()->back()->withErrors([
-                        'cantidad' => 'No hay suficiente materia prima "' . $materiaPrima->nombre . '" para crear este producto.'
-                    ])->withInput();
-                }
-            }
-
-            // Crear el producto
-            $producto = Producto::create([
-                'nombre' => $request->nombre,
-                'descripcion' => $request->descripcion,
-                'precio' => $request->precio,
-                'cantidad' => $cantidadProducto,
-                'imagen_url' => $imagenUrl,
-            ]);
-
-            // Adjuntar materias primas y descontar cantidades
-            foreach ($materiasPrimas as $index => $materiaPrimaId) {
-                $materiaPrima = Materia::find($materiaPrimaId);
-                $cantidadNecesaria = $cantidades[$index] * $cantidadProducto;
-
-                $producto->materias()->attach([
-                    $materiaPrimaId => ['cantidad' => $cantidades[$index]]
-                ]);
-
-                $materiaPrima->cantidad -= $cantidadNecesaria;
-                $materiaPrima->save();
-            }
-
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollback();
-            return back()->withErrors(['error' => 'Ocurrió un error al crear el producto.'])->withInput();
-        }
-
+        DB::commit();
         return redirect()->route('productos.index')->with('success', 'Producto creado exitosamente.');
+    } catch (\Exception $e) {
+        DB::rollback();
+        return back()->withErrors(['error' => 'Ocurrió un error al crear el producto: ' . $e->getMessage()])->withInput();
+    }
     }
 
     public function show($id)
@@ -156,30 +140,43 @@ class ProductoController extends Controller
     $producto = Producto::findOrFail($id);
 
     $request->validate([
-        'nombre' => 'required',
-        'descripcion' => 'required',
+        'nombre' => 'required|string|max:255',
+        'descripcion' => 'required|string',
         'precio' => 'required|numeric|between:0,9999.99',
         'cantidad' => 'required|integer|min:1',
         'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        'materias_primas' => 'required|array',
+        'materias_primas' => 'required|array|min:1',
         'materias_primas.*' => 'exists:materias,id',
-        'cantidades' => 'required|array|size:' . count($request->materias_primas),
+        'cantidades' => 'required|array|size:' . count($request->input('materias_primas', [])),
         'cantidades.*' => 'numeric|min:1',
+    ], [
+        'materias_primas.required' => 'Debe seleccionar al menos una materia prima.',
+        'cantidades.required' => 'Debe ingresar una cantidad para cada materia prima seleccionada.',
+        'cantidades.size' => 'La cantidad de elementos en cantidades debe coincidir con el número de materias primas seleccionadas.',
     ]);
 
     DB::beginTransaction();
     try {
-        $this->handleMateriasPrimas($request, $producto);
-        $this->handleImageUpload($request, $producto);
+        if ($request->hasFile('imagen') && $request->file('imagen')->isValid()) {
+            if ($producto->imagen_url) {
+                Storage::disk('public')->delete($producto->imagen_url);
+            }
+            $producto->imagen_url = $request->file('imagen')->store('imagenes_productos', 'public');
+        }
 
         $producto->update($request->only(['nombre', 'descripcion', 'precio', 'cantidad']));
+
+        $producto->materias()->sync([]);
+        foreach ($request->input('materias_primas', []) as $index => $materiaPrimaId) {
+            $cantidad = $request->cantidades[$index];
+            $producto->materias()->attach($materiaPrimaId, ['cantidad' => $cantidad]);
+        }
 
         DB::commit();
         return redirect()->route('productos.index')->with('success', 'Producto actualizado exitosamente.');
     } catch (\Exception $e) {
         DB::rollback();
-        Log::error('Error al actualizar el producto: ' . $e->getMessage());
-        return back()->withErrors(['error' => 'Error al actualizar el producto.'])->withInput();
+        return back()->withErrors(['error' => 'Error al actualizar el producto: ' . $e->getMessage()])->withInput();
     }
 }
 

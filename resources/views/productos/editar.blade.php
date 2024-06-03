@@ -54,7 +54,7 @@
                         <select name="materias_primas[]" class="form-control" required>
                             <option value="">Seleccionar materia prima</option>
                             @foreach($materias as $materiaPrima)
-                            <option value="{{ $materiaPrima->id }}" @if($materia->id == $materiaPrima->id) selected @endif>{{ $materiaPrima->nombre }}</option>
+                            <option value="{{ $materiaPrima->id }}" @if($materia->id == $materiaPrima->id) selected @endif>{{ $materiaPrima->nombre }}({{ $materiaPrima->unidad }})</option>
                             @endforeach
                         </select>
                     </div>

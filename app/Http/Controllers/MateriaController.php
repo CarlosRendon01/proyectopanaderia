@@ -26,18 +26,31 @@ class MateriaController extends Controller
     public function charge(Request $request)
     {
         $cantidades = $request->input('cantidades', []);
-        DB::beginTransaction();
-        try {
-            foreach ($cantidades as $materiaId => $cantidad) {
-                $materia = Materia::findOrFail($materiaId);
-                $materia->increment('cantidad', $cantidad);
+    $unidades = $request->input('unidades', []);
+    DB::beginTransaction();
+    try {
+        foreach ($cantidades as $materiaId => $cantidad) {
+            $unidad = $unidades[$materiaId];
+            $materia = Materia::findOrFail($materiaId);
+            switch ($unidad) {
+                case 'gramos':
+                    $cantidad *= 50000; // Conversión de un bulto a gramos
+                    break;
+                case 'mililitros':
+                    $cantidad *= 1000; // Conversión de litros a mililitros
+                    break;
+                case 'piezas':
+                    $cantidad *= 360; // Conversión de caja a piezas
+                    break;
             }
+            $materia->increment('cantidad', $cantidad);
+        }
         DB::commit();
         return redirect()->route('materias.index')->with('success', 'Cantidades actualizadas correctamente.');
-        }catch (\Exception $e) {
-            DB::rollback();
-            return back()->withErrors(['error' => 'Error al actualizar las cantidades: ' . $e->getMessage()])->withInput();
-        }
+    } catch (\Exception $e) {
+        DB::rollback();
+        return back()->withErrors(['error' => 'Error al actualizar las cantidades: ' . $e->getMessage()])->withInput();
+    }
     }
 
     // Mostrar el formulario para crear una nueva materia
@@ -55,6 +68,7 @@ class MateriaController extends Controller
             'proveedor' => 'required|string|max:255',
             'cantidad' => 'required|numeric|min:0',
             'precio' => 'required|numeric|min:0',
+            'unidad' => 'required|in:gramos,mililitros,piezas', // Validar la unidad
             'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ], [
             'imagen.image' => 'El archivo debe ser una imagen válida.',
@@ -80,6 +94,7 @@ class MateriaController extends Controller
                 'proveedor' => $request->proveedor,
                 'cantidad' => $request->cantidad,
                 'precio' => $request->precio,
+                'unidad' => $request->unidad, // Guardar la unidad
                 'imagen_url' => $imagenUrl,
             ]);
 
@@ -115,6 +130,7 @@ public function update(Request $request, Materia $materia)
         'proveedor' => 'required|string|max:255',
         'cantidad' => 'required|numeric|min:1',
         'precio' => 'required|numeric|min:0',
+        'unidad' => 'required|in:gramos,mililitros,piezas', // Actualizar la unidad
         'imagen' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
     ], [
         'imagen.image' => 'El archivo debe ser una imagen válida.',
@@ -123,8 +139,8 @@ public function update(Request $request, Materia $materia)
     ]);
 
     // Verificar que la cantidad ingresada sea mayor que la cantidad actual
-    if ($request->cantidad <= $materia->cantidad) {
-        return back()->withErrors(['cantidad' => 'La cantidad ingresada debe ser mayor que la cantidad actual.'])->withInput();
+    if ($request-> cantidad < $materia->cantidad) {
+        return back()->withErrors(['cantidad' => 'La cantidad ingresada debe ser mayor o igual que la cantidad actual.'])->withInput();
     }
 
     // Manejo de la imagen (similar al store, pero con eliminación de la imagen anterior si existe)
@@ -145,6 +161,7 @@ public function update(Request $request, Materia $materia)
             'descripcion' => $request->descripcion,
             'proveedor' => $request->proveedor,
             'cantidad' => $request->cantidad,
+            'unidad' => $request->unidad,
             'precio' => $request->precio,
             'imagen_url' => $imagenUrl, // Actualizar la URL de la imagen (si se cambió)
         ]);

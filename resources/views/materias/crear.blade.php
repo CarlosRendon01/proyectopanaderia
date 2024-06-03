@@ -91,6 +91,20 @@
                                 @enderror
                             </div>
                             <div class="form-group floating-label">
+                                <label for="unidad">Unidad de Medida</label>
+                                <select name="unidad" id="unidad" class="form-control @error('unidad') is-invalid @enderror" required>
+                                    <option value="">Seleccione una unidad...</option>
+                                    <option value="gramos" {{ old('unidad') == 'gramos' ? 'selected' : '' }}>Gramos</option>
+                                    <option value="mililitros" {{ old('unidad') == 'mililitros' ? 'selected' : '' }}>Mililitros</option>
+                                    <option value="piezas" {{ old('unidad') == 'piezas' ? 'selected' : '' }}>Piezas</option>
+                                </select>
+                                @error('unidad')
+                                <span class="invalid-feedback" role="alert">
+                                    <strong>{{ $message }}</strong>
+                                </span>
+                                @enderror
+                            </div>
+                            <div class="form-group floating-label">
                                 <label for="precio">Precio</label>
                                 <input type="text" name="precio"
                                     class="form-control @error('precio') is-invalid @enderror" id="precio" maxlength="8"

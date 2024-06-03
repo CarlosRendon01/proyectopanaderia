@@ -57,6 +57,16 @@
             </div>
             <div class="col-xs-12 col-sm-12 col-md-12">
                 <div class="form-group">
+                    <label for="unidad" class="form-label">Unidad de Medida</label>
+                    <select name="unidad" id="unidad" class="form-control">
+                        <option value="gramos" {{ $materia->unidad == 'gramos' ? 'selected' : '' }}>Gramos</option>
+                        <option value="mililitros" {{ $materia->unidad == 'mililitros' ? 'selected' : '' }}>Mililitros</option>
+                        <option value="piezas" {{ $materia->unidad == 'piezas' ? 'selected' : '' }}>Piezas</option>
+                    </select>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-12 col-md-12">
+                <div class="form-group">
                     <label for="precio" class="form-label">Precio</label>
                     <input type="text" name="precio" class="form-control" value="{{ $materia->precio }}">
                 </div>

@@ -24,7 +24,15 @@
                             @csrf
                             @foreach($materias as $materia)
                             <div class="form-group">
-                                <label for="cantidad_{{ $materia->id }}">{{ $materia->nombre }}</label>
+                                <label for="cantidad_{{ $materia->id }}">
+                                    {{ $materia->nombre }}
+                                </label>
+                                <select name="unidades[{{ $materia->id }}]" class="form-control mb-2">
+                                    <option value="gramos" {{ $materia->unidad == 'gramos' ? 'selected' : '' }}>Bulto de 50kg (gramos)</option>
+                                    <option value="mililitros" {{ $materia->unidad == 'mililitros' ? 'selected' : '' }}>Litros (mililitros)</option>
+                                    <option value="piezas" {{ $materia->unidad == 'piezas' ? 'selected' : '' }}>Caja de 360 piezas</option>
+                                    <option value="individual" {{ $materia->unidad == 'individual' ? 'selected' : '' }}>Piezas individuales</option>
+                                </select>
                                 <input type="number" name="cantidades[{{ $materia->id }}]" class="form-control" min="0" value="0">
                             </div>
                             @endforeach

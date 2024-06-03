@@ -22,6 +22,7 @@ class CreateMateriasTable extends Migration
             $table->decimal('precio', 10, 2);
             $table->string('imagen_url', 255)->nullable(); // Agrega el campo imagen_url
             $table->timestamps(); // Define los campos created_at y updated_at
+            $table->string('unidad');
         });
     }
 

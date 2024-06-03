@@ -155,7 +155,7 @@ body {
                     <div class="modal-body">
                         <ul class="list-unstyled">
                             @foreach ($producto->materias as $materia)
-                                <li>{{ $materia->nombre }} ({{ $materia->pivot->cantidad }}g)</li>
+                                <li>{{ $materia->nombre }} ({{ $materia->pivot->cantidad }} {{ $materia->unidad }}) </li>
                             @endforeach
                         </ul>
                     </div>

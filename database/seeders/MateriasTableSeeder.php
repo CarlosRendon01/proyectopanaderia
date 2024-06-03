@@ -23,6 +23,7 @@ class MateriasTableSeeder extends Seeder
                 'precio' => 50.00,
                 'created_at' => now(),
                 'updated_at' => now(),
+                'unidad' => 'gramos',
             ],
             [
                 'nombre' => 'Materia Prima 2',
@@ -32,6 +33,7 @@ class MateriasTableSeeder extends Seeder
                 'precio' => 80.00,
                 'created_at' => now(),
                 'updated_at' => now(),
+                'unidad' => 'gramos',
             ],
             // Agrega más materias primas según sea necesario
         ]);

@@ -22,6 +22,7 @@ class Materia extends Model
         'cantidad',
         'precio',
         'imagen_url',
+        'unidad',
     ];
 
     // Define la relación con el modelo Producto

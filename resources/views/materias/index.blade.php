@@ -509,6 +509,7 @@
             <th style="color:#fff;">Descripción</th>
             <th style="color:#fff;">Nombre Proveedor</th>
             <th style="color:#fff;">Cantidad</th>
+            <th style="color:#fff;">Unidad</th>
             <th style="color:#fff;">Precio</th>
             <th style="color:#fff;">Acciones</th>
         </tr>
@@ -531,6 +532,7 @@
             <td style="text-align: center;">{{ $materia->descripcion }}</td>
             <td style="text-align: center;">{{ $materia->proveedor }}</td>
             <td style="text-align: center;">{{ $materia->cantidad }}</td>
+            <td style="text-align: center;">{{ $materia->unidad }}</td>
             <td style="text-align: center;">{{ $materia->precio }}</td>
             <td style="text-align: center;">
                 @can('editar-materias')
@@ -573,6 +575,10 @@
                             <div class="row">
                                 <div class="col-6"><label>Cantidad:</label></div>
                                 <div class="col-6">{{ $materia->cantidad }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><label>Unidad:</label></div>
+                                <div class="col-6">{{ $materia->Unidad }}</div>
                             </div>
                             <div class="row">
                                 <div class="col-6"><label>Precio:</label></div>
@@ -639,6 +645,9 @@ new DataTable('#miTabla2', {
         },
         {
             cantidad: 'Cantidad'
+        },
+        {
+            unidad: 'Unidad'
         },
         {
             precio: 'Precio'
