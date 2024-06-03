@@ -95,6 +95,9 @@ body {
         <a class="btn btn-warning" href="{{ route('productos.create') }}">
             <i class="fas fa-plus"></i> Crear Producto
         </a>
+        <a class="btn btn-info" href="{{ route('productos.restantes') }}">
+            <i class="fas fa-file-pdf"></i> Restantes
+        </a>
         <a class="btn btn-warning" href="{{ route('productos.showChargeForm') }}">
             <i class="fas fa-plus"></i> Cargar Producto
         </a>

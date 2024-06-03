@@ -18,7 +18,7 @@ Route::get('/home', [HomeController::class, 'index'])->name('home');
 Route::get('/', [WelcomeController::class, 'showWelcomePage'])->name('welcome');
 
 Route::post('/usuarios/changePassword', [App\Http\Controllers\UsuarioController::class, 'changePassword'])->name('usuarios.changePassword');
-Route::post('/usuarios/updateProfile', [App\Http\Controllers\UsuarioController::class, 'updateProfile'])->name('usuarios.updateProfile');
+Route::post('/usuarios/updateProfile', [Apssp\Http\Controllers\UsuarioController::class, 'updateProfile'])->name('usuarios.updateProfile');
 Route::get('/usuarios/user-list', [App\Http\Controllers\UsuarioController::class, 'getUserList'])->name('usuarios.getUserList');
 
 Route::get('/materias/cargar', [MateriaController::class, 'showChargeForm'])->name('materias.showChargeForm');
@@ -28,6 +28,9 @@ Route::post('/productos/cargar', [ProductoController::class, 'charge'])->name('p
 Route::post('/ventas/corteDeCaja', [VentaController::class, 'corteDeCaja'])->name('ventas.corteDeCaja');
 Route::get('/ventas/reporteDelDia', [VentaController::class, 'reporteDelDia'])->name('ventas.reporteDelDia');
 Route::post('/ventas/reportePorRango', [VentaController::class, 'reportePorRango'])->name('ventas.reportePorRango');
+Route::get('/productos/restantes', [ProductoController::class, 'restantes'])->name('productos.restantes');
+Route::get('/materias/reporteDelDia', [MateriaController::class, 'reporteDelDia'])->name('materias.reporteDelDia');
+Route::post('/materias/reportePorRango', [MateriaController::class, 'reportePorRango'])->name('materias.reportePorRango');
 
 // Grupo de rutas protegidas por el middleware 'auth'
 Route::group(['middleware' => ['auth']], function() {

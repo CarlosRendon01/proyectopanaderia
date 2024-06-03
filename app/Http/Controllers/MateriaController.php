@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use PDF; // Usa el alias registrado
+use Carbon\Carbon;
 
 class MateriaController extends Controller
 {
@@ -16,6 +18,41 @@ class MateriaController extends Controller
         $materias = Materia::paginate(10);
         return view('materias.index', compact('materias'));
     }
+
+    public function reporteDelDia()
+{
+    $fechaHoy = now()->toDateString();
+    $materias = Materia::whereDate('updated_at', $fechaHoy)->get();
+
+    $total = $materias->reduce(function ($carry, $materia) {
+        return $carry + ($materia->cantidad * $materia->precio);
+    }, 0);
+
+    $pdf = PDF::loadView('materias.reporte', compact('materias', 'total', 'fechaHoy'));
+    return $pdf->download('reporte_compras_del_dia_' . $fechaHoy . '.pdf');
+}
+
+public function reportePorRango(Request $request)
+{
+    $request->validate([
+        'fecha_inicio' => 'required|date',
+        'fecha_fin' => 'required|date|after_or_equal:fecha_inicio',
+    ]);
+
+    $materias = Materia::whereBetween('updated_at', [$request->fecha_inicio, $request->fecha_fin])->get();
+
+    $total = $materias->reduce(function ($carry, $materia) {
+        return $carry + ($materia->cantidad * $materia->precio);
+    }, 0);
+
+    $pdf = PDF::loadView('materias.reporte', [
+        'materias' => $materias,
+        'total' => $total,
+        'fecha_inicio' => $request->fecha_inicio,
+        'fecha_fin' => $request->fecha_fin
+    ]);
+    return $pdf->download("reporte_compras_{$request->fecha_inicio}_a_{$request->fecha_fin}.pdf");
+}
 
     public function showChargeForm()
     {

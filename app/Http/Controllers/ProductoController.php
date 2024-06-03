@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use PDF; // Usa el alias registrado
+use Carbon\Carbon;
 
 class ProductoController extends Controller
 {
@@ -16,6 +18,26 @@ class ProductoController extends Controller
         $productos = Producto::paginate(6);
         return view('productos.index', compact('productos'));
     }
+
+    public function restantes()
+{
+    $fechaHoy = Carbon::today();
+    $productos = Producto::whereDate('updated_at', $fechaHoy)
+                         ->where('cantidad', '>', 0)
+                         ->get();
+
+    $totalInventario = $productos->reduce(function ($carry, $producto) {
+        return $carry + ($producto->precio * $producto->cantidad);
+    }, 0);
+
+    $pdf = PDF::loadView('productos.restantes', [
+        'productos' => $productos,
+        'totalInventario' => $totalInventario,
+        'fecha' => $fechaHoy->toDateString()
+    ]);
+
+    return $pdf->download('productos_restantes_del_dia_' . $fechaHoy->format('Y-m-d') . '.pdf');
+}
 
     public function showChargeForm()
     {

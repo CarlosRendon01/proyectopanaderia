@@ -496,6 +496,32 @@
                                 <i class="fas fa-plus"></i> Nuevo ingrediente
                             </a>
                             @endcan
+                            <a class="btn btn-info" href="{{ route('materias.reporteDelDia') }}">
+                                <i class="fas fa-file-pdf"></i> Reporte del Día
+                            </a>
+                            <button class="btn btn-info" onclick="openReporteModal();">
+    <i class="fas fa-calendar-alt"></i> Reporte por Rango
+</button>
+
+<!-- Modal para reporte por rango de fechas -->
+<div id="reporteModal" style="display: none; position: fixed; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1050;">
+    <div style="background: white; padding: 20px; width: 300px; margin: 100px auto;">
+        <h2>Reporte por Rango de Fechas</h2>
+        <form action="{{ route('materias.reportePorRango') }}" method="POST">
+            @csrf
+            <div class="form-group">
+                <label for="fecha_inicio">Fecha Inicio:</label>
+                <input type="date" name="fecha_inicio" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label for="fecha_fin">Fecha Fin:</label>
+                <input type="date" name="fecha_fin" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Generar Reporte</button>
+        </form>
+        <button onclick="closeReporteModal();" style="margin-top: 10px;">Cerrar</button>
+    </div>
+</div>
                             <a class="btn btn-warning" href="{{ route('materias.showChargeForm') }}">
                                 <i class="fas fa-plus"></i> Cargar Materias
                             </a>
@@ -687,6 +713,14 @@ function confirmarEliminacion(id) {
             });
         }
     });
+}
+
+function openReporteModal() {
+    document.getElementById('reporteModal').style.display = 'block';
+}
+
+function closeReporteModal() {
+    document.getElementById('reporteModal').style.display = 'none';
 }
 </script>
 
