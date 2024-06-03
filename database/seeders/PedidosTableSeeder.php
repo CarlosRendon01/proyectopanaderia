@@ -20,12 +20,14 @@ class PedidosTableSeeder extends Seeder
                 'total' => 300,
                 'created_at' => now(),
                 'updated_at' => now(),
+                'dinero' => 10,
             ],
             [
                 'descripcion' => 'Pedido 2',
                 'total' => 300,
                 'created_at' => now(),
                 'updated_at' => now(),
+                'dinero' => 10,
             ],
         ];
 

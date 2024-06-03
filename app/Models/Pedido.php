@@ -11,9 +11,9 @@ class Pedido extends Model
 
     protected $table = 'pedidos';
 
-    protected $fillable = ['descripcion', 'total'];
+    protected $fillable = ['descripcion', 'total','extras','dinero'];
 
-    protected $casts = ['total' => 'decimal:2'];
+    protected $casts = ['total','dinero' => 'decimal:2'];
 
     // Relación con Productos
     public function productos()

@@ -17,6 +17,8 @@ class CreatePedidosTable extends Migration
             $table->id(); // Define el campo id_punventa como la clave primaria
             $table->string('descripcion');
             $table->decimal('total', 10, 2);
+            $table->decimal('dinero', 10, 2);
+            $table->text('extras')->nullable();
             $table->timestamps(); // Define los campos created_at y updated_at
         });
     }

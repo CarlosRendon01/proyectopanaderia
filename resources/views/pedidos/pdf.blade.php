@@ -9,104 +9,61 @@
             margin: 0;
             padding: 0;
         }
-
         .ticket {
-            width: 400px; /* Ancho aumentado */
+            width: 400px;
             margin: 20px auto;
-            padding: 30px; /* Padding aumentado */
+            padding: 30px;
             border: 1px solid #000;
         }
-
-        .header {
+        .header, .details, .items, .total, .footer, .extras {
             text-align: center;
             margin-bottom: 20px;
         }
-
-        .logo {
-            width: 180px;
-            margin-bottom: 10px;
-        }
-
-        h1 {
-            font-size: 32px; /* Tamaño de fuente aumentado */
-            margin: 0;
+        h1, h2 {
+            margin: 0 0 10px 0;
             font-weight: bold;
         }
-
-        .details {
-            font-size: 14px; /* Tamaño de fuente aumentado */
-            margin-bottom: 25px;
-        }
-
-        .details p {
+        p {
             margin: 5px 0;
         }
-
-        .items {
-            font-size: 14px; /* Tamaño de fuente aumentado */
-            margin-bottom: 15px;
+        .items, .total {
+            text-align: right;
         }
-
         .item {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .total {
-            font-size: 16px; /* Tamaño de fuente aumentado */
-            font-weight: bold;
-            text-align: right;
-            margin-top: 15px;
-        }
-
-        .footer {
-            font-size: 12px;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        /* Estilo de ticket */
-        .ticket::after {
-            content: '';
-            display: block;
-            margin-top: 20px; /* Espacio aumentado */
-            border-top: 1px dashed #000; /* Línea más fina */
         }
     </style>
 </head>
 <body>
     <div class="ticket">
         <div class="header">
-            <h1>Ticket de Pedido</h1>
+            <h1>Pedido #{{ $pedido->id }}</h1>
         </div>
-
         <div class="details">
-            <h2 class="mb-2">Panadería "El Triunfo"</h2>
-            <p>Dirección: [Dirección de la Panadería]</p>
+            <h2>Panadería "El Triunfo"</h2>
+            <p>Dirección: [Dirección]</p>
             <p>Tel: 9514785623</p>
-            <p>Fecha: {{ $pedido->created_at }}</p>
-            <p>Hora: {{ date('H:i:s') }}</p>
-            <p>Ticket: #{{ $pedido->id }}</p>
+            <p>Fecha: {{ $pedido->created_at->format('d/m/Y') }}</p>
+            <p>Hora: {{ $pedido->created_at->format('H:i') }}</p>
         </div>
-
         <div class="items">
             @foreach ($productos as $producto)
             <div class="item">
-                <span><strong>{{ $producto->pivot->cantidad }} {{ $producto->nombre }}</strong></span>
-                <span><strong>${{ number_format($producto->pivot->cantidad * $producto->precio, 2) }}</strong></span>
+                <span>{{ $producto->pivot->cantidad }}x {{ $producto->nombre }}</span>
+                <span>${{ number_format($producto->pivot->cantidad * $producto->precio, 2) }}</span>
             </div>
             @endforeach
         </div>
-
-        <div class="total">
-            TOTAL: ${{ number_format($pedido->total, 2) }}
+        <div class="extras">
+            <p><strong>Extras:</strong> {{ $extras }}</p>
+            <p><strong>Dinero Extra:</strong> ${{ number_format($dinero, 2) }}</p>
         </div>
-
+        <div class="total">
+            <h2>TOTAL: ${{ number_format($pedido->total, 2) }}</h2>
+        </div>
         <div class="footer">
             <p>Gracias por su compra.</p>
-            <p>¡Vuelva pronto!</p>
-            <p>[Mensaje promocional opcional]</p>
         </div>
     </div>
 </body>

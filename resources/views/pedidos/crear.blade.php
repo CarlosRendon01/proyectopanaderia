@@ -25,10 +25,18 @@
                         <form id="ventaForm" action="{{ route('pedidos.store') }}" method="POST">
                             @csrf
                             <div class="form-row">
-                                <div class="form-group col-md-6">
+                                <div class="form-group col-md-2">
                                     <label for="descripcion">Descripción</label>
                                     <input type="text" class="form-control" id="descripcion" name="descripcion"
                                         placeholder="Descripción breve del pedido" required>
+                                </div>
+                                <div class="form-group col-md-2">
+                                    <label for="dinero">Dinero Extra ($)</label>
+                                    <input type="number" class="form-control" id="dinero" name="dinero" step="0.01" placeholder="Cantidad extra para sumar al total">
+                                </div>
+                                <div class="form-group col-md-6">
+                                    <label for="extras">Extras</label>
+                                    <textarea class="form-control" id="extras" name="extras" placeholder="Detalles adicionales"></textarea>
                                 </div>
                             </div>
                             <div class="form-row">
@@ -80,14 +88,18 @@
 @endsection
 
 <script>
+
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addProductButton').addEventListener('click', agregarProducto);
+    document.getElementById('dinero').addEventListener('change', actualizarTotal);
     cargarProductosDeLocalStorage();
     actualizarCantidadesDisponibles();
 
     document.getElementById('ventaForm').addEventListener('submit', function(event) {
         actualizarFormulario();
     });
+
+    document.getElementById('dinero').addEventListener('change', actualizarTotal);
 
     function agregarProducto() {
         const productoSelect = document.getElementById('producto');
@@ -219,9 +231,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function actualizarTotal() {
         let productos = JSON.parse(localStorage.getItem('productosVenta')) || [];
-        let total = productos.reduce((sum, producto) => sum + parseFloat(producto.subtotal), 0);
-        document.getElementById('totalDisplay').textContent = total.toFixed(2);
-        document.getElementById('total').value = total.toFixed(2);
+    let total = productos.reduce((sum, producto) => sum + parseFloat(producto.subtotal), 0);
+    let dineroExtra = parseFloat(document.getElementById('dinero').value) || 0;
+    total += dineroExtra;
+    document.getElementById('totalDisplay').textContent = total.toFixed(2);
+    document.getElementById('total').value = total.toFixed(2);
     }
 
     function actualizarFormulario() {

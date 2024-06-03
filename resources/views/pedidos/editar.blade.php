@@ -26,7 +26,15 @@
                         <input type="text" class="form-control" id="descripcion" name="descripcion" value="{{ $pedido->descripcion }}" required>
                     </div>
 
-                    <!-- Eliminar el campo de total -->
+                    <div class="form-group">
+                        <label for="extras">Extras</label>
+                        <textarea class="form-control" id="extras" name="extras" rows="4">{{ $pedido->extras }}</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="dinero">Dinero Extra ($)</label>
+                        <input type="number" class="form-control" id="dinero" name="dinero" step="0.01" value="{{ $pedido->dinero }}" placeholder="Cantidad extra para sumar al total">
+                    </div>
 
                     <div class="form-group">
                         <label>Productos</label>

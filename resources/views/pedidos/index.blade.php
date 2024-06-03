@@ -705,9 +705,14 @@ body {
                                             </thead>
                                             <tbody id="detalleVentaBody">
                                                 <!-- Detalles de la venta se llenarán aquí -->
+                                                <div class="custom-modal-footer">
+                                        <p><strong>Extras:</strong> <span id="extrasInfo"></span></p>
+                                        <p><strong>Dinero Extra:</strong> $<span id="dineroInfo"></span></p>
+                                    </div>
                                             </tbody>
                                         </table>
                                     </div>
+                                    
                                     <div class="custom-modal-footer">
                                         <button type="button" class="btn btn-secondary"
                                             onclick="closeModal()">Cerrar</button>
@@ -817,17 +822,24 @@ function showModal(pedidoId) {
     var modal = document.getElementById('detalleVentaModal');
     modal.style.display = "flex";
 
-    // Aquí puedes hacer la solicitud AJAX para obtener los detalles de la venta
-    // y llenar el contenido del modal.
+    // Solicitar los detalles del pedido, incluyendo extras y dinero extra
     $.ajax({
         url: '/pedidos/' + pedidoId + '/detalles',
         method: 'GET',
         success: function (data) {
             var detalleVentaBody = document.getElementById('detalleVentaBody');
             detalleVentaBody.innerHTML = '';
-            data.forEach(function (item) {
+            data.productos.forEach(function (item) {
                 detalleVentaBody.innerHTML += '<tr><td>' + item.producto + '</td><td>' + item.cantidad + '</td></tr>';
             });
+            // Asumiendo que la respuesta también incluye 'extras' y 'dinero'
+            var extrasInfo = document.getElementById('extrasInfo');
+            extrasInfo.textContent = data.extras || 'No especificado'; // Maneja casos donde no hay extras
+            var dineroInfo = document.getElementById('dineroInfo');
+            dineroInfo.textContent = data.dinero || '0'; // Maneja casos donde no hay dinero extra
+        },
+        error: function (xhr, status, error) {
+            console.error("Error al cargar los detalles: " + error);
         }
     });
 }

@@ -19,9 +19,15 @@ class PedidoController extends Controller
     {
         $pedido = Pedido::findOrFail($id);
         $productos = $pedido->productos;
-
-        $pdf = PDF::loadView('pedidos.pdf', compact('pedido', 'productos'));
-
+    
+        // Agrega extras y dinero a la vista
+        $pdf = PDF::loadView('pedidos.pdf', [
+            'pedido' => $pedido,
+            'productos' => $productos,
+            'extras' => $pedido->extras,
+            'dinero' => $pedido->dinero
+        ]);
+    
         return $pdf->download('pedido_'.$pedido->id.'.pdf');
     }
 
@@ -30,17 +36,30 @@ class PedidoController extends Controller
         $pedidos = Pedido::with('productos')->paginate(5);
         return view('pedidos.index', compact('pedidos'));
     }
+
     public function detalles($id)
-{
-    $pedido = Pedido::find($id);
-    $detalles = $pedido->productos->map(function ($producto) {
-        return [
-            'producto' => $producto->nombre, // Ajusta esto al nombre del atributo del producto
-            'cantidad' => $producto->pivot->cantidad,
+    {
+        $pedido = Pedido::find($id);
+        if (!$pedido) {
+            return response()->json(['error' => 'Pedido no encontrado'], 404);
+        }
+
+        $detalles = $pedido->productos->map(function ($producto) {
+            return [
+                'producto' => $producto->nombre,
+                'cantidad' => $producto->pivot->cantidad,
+            ];
+        });
+
+    // Incluir extras y dinero en la respuesta
+        $respuesta = [
+            'productos' => $detalles,
+            'extras' => $pedido->extras,
+            'dinero' => $pedido->dinero
         ];
-    });
-    return response()->json($detalles);
-}
+
+        return response()->json($respuesta);
+    }
 
 
 
@@ -59,15 +78,27 @@ class PedidoController extends Controller
         $validated = $request->validate([
             'descripcion' => 'required|string|max:255',
             'total' => 'required|numeric',
+            'extras' => 'nullable|string',  // Añade la validación para el campo extras
+            'dinero' => 'nullable|numeric',
             'productos' => 'required|array',
             'productos.*.id' => 'required|integer|exists:productos,id',
             'productos.*.cantidad' => 'required|integer|min:1'
         ]);
 
+         // Inicializar el total
+         $total = $request->total;
+
+         // Sumar el dinero extra al total inicial si existe
+         if ($request->filled('dinero')) {
+             $total += $request->dinero;
+         }
+
         // Crear la venta
         $pedido = Pedido::create([
             'descripcion' => $request->descripcion,
-            'total' => $request->total
+            'total' => $request->total,
+            'extras' => $request->extras,  // Guardar el campo extras
+            'dinero' => $request->dinero
         ]);
 
         // Adjuntar productos a la venta y actualizar la cantidad de los productos
@@ -114,6 +145,8 @@ class PedidoController extends Controller
     {
         $request->validate([
             'descripcion' => 'required|string|max:255',
+            'extras' => 'nullable|string',  // Validar el campo extras
+            'dinero' => 'nullable|numeric',
             'productos' => 'required|array',
             'productos.*.cantidad' => 'required|integer|min:1'
         ]);
@@ -139,11 +172,15 @@ class PedidoController extends Controller
                 $producto->cantidad -= $diferenciaCantidad;
                 $producto->save();
             }
-    
+            
+            $total += $request->dinero;
+
             // Actualizar la venta con el nuevo total y descripción
             $pedido->update([
                 'descripcion' => $request->descripcion,
-                'total' => $total
+                'total' => $total,
+                'extras' => $request->extras,  // Actualizar el campo extras
+                'dinero' => $request->dinero
             ]);
     
             DB::commit();
