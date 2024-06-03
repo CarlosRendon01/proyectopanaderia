@@ -79,6 +79,19 @@
                         <h4>Total: $<span id="totalDisplay">0.00</span></h4>
                         <button type="submit" form="ventaForm" class="btn btn-primary">Guardar Pedido</button>
                         <a href="{{ route('pedidos.index') }}" class="btn btn-danger">Cancelar</a>
+                        <div id="confirmVentaModal" style="display:none; position: fixed; z-index: 1050; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: 1px solid #888; width: 40%;">
+        <h2>Confirmar Pedido</h2>
+        <p>Total del pedido: $<span id="modalTotalCompra"></span></p>
+        <div>
+            <label for="dineroRecibido">Dinero recibido:</label>
+            <input type="number" id="dineroRecibido" class="form-control" step="0.01" oninput="calcularCambio()">
+        </div>
+        <p>Cambio: $<span id="cambio">0.00</span></p>
+        <button type="button" onclick="finalizarPedido()" class="btn btn-success">Confirmar Pedido</button>
+        <button type="button" onclick="cerrarModal()" class="btn btn-danger">Cancelar</button>
+    </div>
+</div>
                     </div>
                 </div>
             </div>
@@ -265,5 +278,39 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.removeItem('cantidadesDisponibles');
     @endif
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('ventaForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        mostrarModalVenta();
+    });
+});
+
+function calcularCambio() {
+    const totalCompra = parseFloat(document.getElementById('modalTotalCompra').textContent);
+    const dineroRecibido = parseFloat(document.getElementById('dineroRecibido').value);
+    const cambio = dineroRecibido - totalCompra;
+
+    document.getElementById('cambio').textContent = cambio >= 0 ? cambio.toFixed(2) : '0.00';
+}
+
+function mostrarModalVenta() {
+    document.getElementById('modalTotalCompra').textContent = document.getElementById('totalDisplay').textContent;
+    document.getElementById('dineroRecibido').value = '';
+    document.getElementById('cambio').textContent = '0.00';
+    document.getElementById('confirmVentaModal').style.display = 'block';
+}
+
+function finalizarPedido() {
+    if (parseFloat(document.getElementById('cambio').textContent) >= 0) {
+        document.getElementById('ventaForm').submit();
+    } else {
+        alert('El dinero recibido no es suficiente para cubrir el total del pedido.');
+    }
+}
+
+function cerrarModal() {
+    document.getElementById('confirmVentaModal').style.display = 'none';
+}
 </script>
     
